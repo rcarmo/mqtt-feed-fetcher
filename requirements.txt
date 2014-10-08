@@ -1,0 +1,7 @@
+hy
+paho-mqtt
+peewee
+speedparser
+lxml
+goless
+chardet
