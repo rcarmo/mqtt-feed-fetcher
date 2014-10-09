@@ -4,12 +4,18 @@
     [StringIO [StringIO :as string-io]]
     [urllib2 [Request HTTPError URLError urlopen BaseHandler addinfourl build-opener]])
 
+
+(defn slurp-file [name]
+    (.read (open name "rb")))
+
+
 (defclass not-modified-handler [BaseHandler]
     [[http-error-304 
         (fn [self req fp code message headers]
             (let [[result (addinfourl fp headers (.get-full-url req))]]
                 (setv result.code code)
                     result))]])
+
 
 (defn fetch-url [url &optional [etag nil] [last-modified nil] [timeout 2]]
     ; fetch an URL using etags, gzip encoding and Last-Modified to minimize traffic

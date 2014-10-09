@@ -7,7 +7,7 @@
     [speedparser [parse]]
     [lxml.etree [Element tostring fromstring]]
     [db [Feed Item setup]]
-    [utils [fetch-url]])
+    [utils [fetch-url slurp-file]])
     
 
 (defn add-feed [title url category]
