@@ -12,6 +12,7 @@
                     result))]])
 
 (defn fetch-url [url &optional [etag nil] [last-modified nil] [timeout 2]]
+    ; fetch an URL using etags, gzip encoding and Last-Modified to minimize traffic
     (let [[req (Request url)]
           [opener (build-opener (not-modified-handler))]]
         (.add-header req "User-Agent" "Mozilla/5.0")

@@ -19,6 +19,7 @@ class CustomModel(Model):
     """Binds the database to all our models"""
 
     def fields(self, fields=None, exclude=None):
+        """helper for grabbing a set of fields as a dictionary"""
         model_class = type(self)
         data = {}
 
