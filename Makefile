@@ -4,7 +4,7 @@ repl:
 	hy
 
 deps:
-	pip install -r requirements.txt
+	pip install -U -r requirements.txt
 
 init:
 	FEED_DATABASE=$(DATABASE) python db.py
