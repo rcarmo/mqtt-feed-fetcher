@@ -44,34 +44,47 @@
     ; TODO - use feed TTL
     (for [feed feeds]
         (yield
-            (let [[result (apply fetch-url [feed.url] {"etag" feed.etag "last_modified" feed.last-modified})]]
-                (setv feed.code (:code result))
-                (if (in "last-modified" (:headers result))
-                    (setv feed.last-modified (.strptime datetime (get (:headers result) "last-modified") "%a, %d %b %Y %H:%M:%S %Z")))
-                (if (in "etag" (:headers result))
-                    (setv feed.etag (get (:headers result) "etag")))
-                (setv feed.last-status (:code result))
-                (print (:code result) (len (:data result)) feed.url)
+            (let [[result  (apply fetch-url [(. feed url)] 
+                                {"etag" (. feed etag) "last_modified" (. feed last-modified)})]
+                  [headers (:headers result)]
+                  [code    (:code result)]
+                  [data    (:data result)]]
+                (if (< code 300)
+                    (setv (. feed last-modified) (.now datetime)))
+                    (if (in "last-modified" headers)
+                    (setv (. feed last-modified) (.strptime datetime (get headers "last-modified") "%a, %d %b %Y %H:%M:%S %Z")))
+                (if (in "etag" headers)
+                    (setv (. feed etag) (get headers "etag")))
+                (setv (. feed last-status) code)
+                (print code (len data) (. feed url))
                 (.save feed)
-                (if (= (:code result) 200)
-                    (:data result)
-                    nil)))))
+                (if (>= code 400)
+                    (setv (. feed error-count) (+ 1 (. feed error-count))))
+                (if (= code 200)
+                    {:feed feed :data data}
+                    {:feed feed :data nil})))))
 
 
-(defn parse-feeds [feed-data]
+(defn parse-feeds [feed-seq]
    ; feed parser and item generator
    ; TODO - update feed TTL and other data
-   (for [data feed-data]
+   (for [item feed-seq]
        (yield
-            (let [[feed (parse data)]]
+            (let [[parsed   (parse (:data item))]
+                  [feed     (:feed item)]
+                  [metadata (.get parsed "feed" nil)]]
+                  (if (in "title" metadata)
+                    (do                    
+                        (setv (. feed title) (get metadata "title"))
+                        (.save feed)))
                 (map
                     ; enrich items with feed data
                     (fn [entry]
                         (for [field ["link" "author" "title" "description"]]
                             (let [[new-key (+ "feed-" field)]]
-                                (assoc entry new-key (.get (.get feed "feed") field nil))))
+                                (assoc entry new-key (.get (.get parsed "feed") field nil))))
                         entry)
-                    (.get feed "entries" []))))))
+                    (.get parsed "entries" []))))))
 
 
 (defn handle-items [chunk]
@@ -109,4 +122,6 @@
 ;(opmlimport (slurp-file "test.opml"))
 ;(print (opmlexport))
 
-(fetch-all)
+(defmain [args]
+    (fetch-all))
+    
