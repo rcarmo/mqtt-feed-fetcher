@@ -14,3 +14,7 @@ clean:
 
 fetch:
 	FEED_DATABASE=$(DATABASE) MQTT_BROKER=localhost MQTT_TOPIC=rss/new hy main.hy
+
+
+cli:
+	FEED_DATABASE=$(DATABASE) hy cli.hy
